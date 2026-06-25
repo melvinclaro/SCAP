@@ -1,0 +1,35 @@
+Options -Indexes -MultiViews
+
+# ── Seguridad básica ──────────────────────────────────────
+<FilesMatch "\.(sql|log|md|json|lock)$">
+    Require all denied
+</FilesMatch>
+
+# ── Proteger carpetas internas ────────────────────────────
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /SCAP/
+
+    # No redirigir archivos/carpetas reales (CSS, JS, imágenes, etc.)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Enviar todo al front controller
+    RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+</IfModule>
+
+# ── Headers de seguridad ──────────────────────────────────
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ── Caché de assets estáticos ─────────────────────────────
+<FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg|woff2?)$">
+    <IfModule mod_expires.c>
+        ExpiresActive On
+        ExpiresDefault "access plus 1 month"
+    </IfModule>
+</FilesMatch>
